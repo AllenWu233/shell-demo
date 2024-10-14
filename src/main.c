@@ -1,4 +1,4 @@
-#include "parse-input.h"
+#include "input.h"
 #include <stdio.h>
 
 char buf[BUFF_SIZE];
@@ -6,19 +6,25 @@ char current_path[BUFF_SIZE];
 char command[MAX_CMD][MAX_CMD_LEN];
 int argc;
 
-int run() {
+// Print current path in prompt
+void print_prompt() {
+    memset(current_path, 0, BUFF_SIZE);
+    getcwd(current_path, sizeof(current_path));
+    printf("[user@shelldemo: %s]%% ", current_path);
+}
+
+void run() {
     while (1) {
-        // Print path in prompt
-        // memset(current_path, 0, BUFF_SIZE);
-        // getcwd(current_path, sizeof(current_path));
-        // printf("[user@shelldemo: %s]%% ", current_path);
+        print_prompt();
         // Get user input
-        get_input();
+        if (get_input() == QUIT) {
+            return;
+        }
 #ifdef DEBUG
         printf("[Debug]user input: %s\n", buf);
 #endif
 
-        parse();
+        parse_input();
 #ifdef DEBUG
         printf("[Debug]argc: %d\n", argc);
         for (int i = 0; i < argc; i++) {
@@ -26,7 +32,6 @@ int run() {
         }
 #endif
     }
-    return 0;
 }
 
 int main() {
