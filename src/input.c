@@ -1,15 +1,29 @@
 #include "input.h"
 #include "globals.h"
 
+status add_to_history() {
+    if (history_cnt >= MAX_HISTORY) {
+        // Shift the history array to the left
+        for (int i = 0; i < MAX_HISTORY - 1; i++) {
+            memcpy(history[i], history[i + 1], sizeof(history[i]));
+        }
+        history_cnt--;
+    }
+    memcpy(history[history_cnt++], buf, sizeof(buf));
+    return OK;
+}
+
 status get_input() {
     has_pipe = FALSE;
     has_redirect = FALSE;
     memset(buf, 0, sizeof(buf));
     fgets(buf, sizeof(buf), stdin);
-    // Replace the last '\n' with '\0'
+    if (strcmp(buf, "\n") == 0) { // Empty input
+        return ERROR;
+    }
     buf[strlen(buf) - 1] = '\0';
-    // Save command history
-    memcpy(historys[history_cnt++], buf, sizeof(buf));
+
+    add_to_history();
 
     if (strcmp(buf, "quit") == 0 || strcmp(buf, "exit") == 0) {
         return QUIT;

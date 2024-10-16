@@ -5,7 +5,7 @@
 char buf[BUFF_SIZE];
 char current_path[BUFF_SIZE];
 char command[MAX_CMD][MAX_CMD_LEN];
-char historys[MAX_HISTORY][BUFF_SIZE];
+char history[MAX_HISTORY][BUFF_SIZE];
 int argc;
 int history_cnt;
 boolean has_pipe;
@@ -13,9 +13,11 @@ boolean has_redirect;
 
 // Initialize global variables
 void init() {
-    memset(historys, 0, sizeof(historys));
+    memset(history, 0, sizeof(history));
     argc = 0;
     history_cnt = 0;
+    has_pipe = FALSE;
+    has_redirect = FALSE;
 }
 
 // Print current path in prompt

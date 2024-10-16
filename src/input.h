@@ -7,6 +7,9 @@
 #include <string.h>
 #include <unistd.h>
 
+// Add input to history array
+status add_to_history();
+
 // Get user input, including spaces
 // and save history of input to array 'historys'
 status get_input();

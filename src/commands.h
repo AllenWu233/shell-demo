@@ -32,12 +32,13 @@ status ls2(const char *directory);
 // Usage: touch [file]
 status touch2(const char *filename);
 
+status history2();
+
 status echo2();
 status cat2();
 status cp2();
 status rm2();
 status rename2();
-status history2();
 
 status execute_command();
 

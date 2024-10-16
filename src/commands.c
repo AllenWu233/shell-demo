@@ -91,7 +91,7 @@ status touch2(const char *filename) {
 
 status history2() {
     for (int i = 0; i < history_cnt; i++) {
-        printf("%d: %s\n", i + 1, historys[i]);
+        printf("%d: %s\n", i + 1, history[i]);
     }
     return OK;
 }
@@ -140,8 +140,8 @@ status execute_command() {
             if (argc > 1) {
                 fprintf(stderr, "history2: too many arguments\n");
                 return ERROR;
-                history2();
             }
+            history2();
         } else {
             ;
         }
