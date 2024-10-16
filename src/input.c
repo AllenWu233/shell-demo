@@ -2,10 +2,15 @@
 #include "globals.h"
 
 status get_input() {
+    has_pipe = FALSE;
+    has_redirect = FALSE;
     memset(buf, 0, sizeof(buf));
     fgets(buf, sizeof(buf), stdin);
     // Replace the last '\n' with '\0'
     buf[strlen(buf) - 1] = '\0';
+    // Save command history
+    memcpy(historys[history_cnt++], buf, sizeof(buf));
+
     if (strcmp(buf, "quit") == 0 || strcmp(buf, "exit") == 0) {
         return QUIT;
     }
@@ -21,6 +26,10 @@ status parse_input() {
     int i, j;
     for (i = 0, j = 0; i < len; i++) {
         if (buf[i] == '|' || buf[i] == '>') {
+            if (buf[i] == '|')
+                has_pipe = TRUE;
+            if (buf[i] == '>')
+                has_redirect = TRUE;
             // If there was a token being built, end it and start a new token
             // for '|' or '>'
             if (j > 0) {

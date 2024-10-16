@@ -9,5 +9,12 @@ extern char command[MAX_CMD][MAX_CMD_LEN]; // Array to store the parsed tokens
 extern int
     argc; // Counter to keep track of the number of tokens. '|' and '>' are
           // treated as separate tokens regardless of surrounding spaces
+extern char historys[MAX_HISTORY]
+                    [BUFF_SIZE]; // Array to store the history of commands
+extern int history_cnt;  // Counter to keep track of the number of commands in
+                         // the history
+extern boolean has_pipe; // Flag to indicate if there is a pipe in the command
+extern boolean
+    has_redirect; // Flag to indicate if there is a redirect in the command
 
 #endif

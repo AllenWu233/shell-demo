@@ -8,11 +8,10 @@
 #include <unistd.h>
 
 // Get user input, including spaces
+// and save history of input to array 'historys'
 status get_input();
 
 /*
- * Function: parse_input
- * -----------------------
  * Parse the input string stored in 'buf' and tokenize it based on spaces,
  * treating '|' and '>' as individual tokens. Store the tokens in the 'command'
  * array. Multiple consecutive spaces are treated as a single space.

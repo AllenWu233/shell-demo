@@ -9,12 +9,28 @@
 #include <string.h>
 #include <unistd.h>
 
+// Change to home directory
 status cd_home();
 
+// Print working directory
 status pwd2();
+
+// Change directory
+// Usage: cd [path]
+// If no path is provided, change to home directory.
+// If path is provided, change to that directory.
+// 'cd -' will change to the previous directory.
 status cd2(const char *path);
+
+// List directory contents
+// Usage: ls [directory]
+// If no directory is provided, list contents of current directory.
 status ls2(const char *directory);
+
+// Create a new file
+// Usage: touch [file]
 status touch2();
+
 status echo2();
 status cat2();
 status cp2();

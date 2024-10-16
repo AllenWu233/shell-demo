@@ -5,7 +5,18 @@
 char buf[BUFF_SIZE];
 char current_path[BUFF_SIZE];
 char command[MAX_CMD][MAX_CMD_LEN];
+char historys[MAX_HISTORY][BUFF_SIZE];
 int argc;
+int history_cnt;
+boolean has_pipe;
+boolean has_redirect;
+
+// Initialize global variables
+void init() {
+    memset(historys, 0, sizeof(historys));
+    argc = 0;
+    history_cnt = 0;
+}
 
 // Print current path in prompt
 void print_prompt() {
@@ -38,6 +49,7 @@ void run() {
 }
 
 int main() {
+    init();
     printf("===== Welcome to Allen's shell demo! =====\n");
     cd_home();
     run();
