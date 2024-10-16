@@ -1,3 +1,4 @@
+#include "commands.h"
 #include "input.h"
 #include <stdio.h>
 
@@ -31,11 +32,14 @@ void run() {
             printf("[Debug]command[%d]: %s\n", i, command[i]);
         }
 #endif
+
+        execute_command();
     }
 }
 
 int main() {
     printf("===== Welcome to Allen's shell demo! =====\n");
+    cd_home();
     run();
     printf("===== Goodbye from shell demo! =====\n");
     return 0;
