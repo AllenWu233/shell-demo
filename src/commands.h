@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <utime.h>
 
 // Change to home directory
 status cd_home();
@@ -29,7 +30,7 @@ status ls2(const char *directory);
 
 // Create a new file
 // Usage: touch [file]
-status touch2();
+status touch2(const char *filename);
 
 status echo2();
 status cat2();

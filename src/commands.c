@@ -71,6 +71,24 @@ status ls2(const char *directory) {
     return OK;
 }
 
+status touch2(const char *filename) {
+    if (filename == NULL) {
+        fprintf(stderr, "touch2: missing filename\n");
+        return ERROR;
+    }
+
+    if (utime(filename, NULL) != 0) {
+        FILE *file = fopen(filename, "w");
+        if (file == NULL) {
+            perror("touch2");
+            return ERROR;
+        }
+        fclose(file);
+    }
+
+    return OK;
+}
+
 status history2() {
     for (int i = 0; i < history_cnt; i++) {
         printf("%d: %s\n", i + 1, historys[i]);
@@ -107,6 +125,15 @@ status execute_command() {
                 ls2(command[1]);
             } else {
                 fprintf(stderr, "ls2: too many arguments\n");
+                return ERROR;
+            }
+        } else if (strcmp(cmd, "touch2") == 0) {
+            if (argc == 1) {
+                fprintf(stderr, "touch2: missing filename\n");
+            } else if (argc == 2) {
+                touch2(command[1]);
+            } else {
+                fprintf(stderr, "touch2: too many arguments\n");
                 return ERROR;
             }
         } else if (strcmp(cmd, "history2") == 0) {
