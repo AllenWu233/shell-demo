@@ -17,28 +17,43 @@ status cd_home();
 status pwd2();
 
 // Change directory
-// Usage: cd [path]
+// Usage: cd <path>
 // If no path is provided, change to home directory.
 // If path is provided, change to that directory.
 // 'cd -' will change to the previous directory.
 status cd2(const char *path);
 
 // List directory contents
-// Usage: ls [directory]
+// Usage: ls <directory>
 // If no directory is provided, list contents of current directory.
 status ls2(const char *directory);
 
 // Create a new file
-// Usage: touch [file]
+// Usage: touch <file>
 status touch2(const char *filename);
 
-status history2();
+// Print a message
+// Usage: echo <message>
+status echo2(const char *message);
 
-status echo2();
-status cat2();
-status cp2();
-status rm2();
-status rename2();
+// Print contents of a file
+// Usage: cat2 <file>
+status cat2(const char *filename);
+
+// Copy a file
+// Usage: cp <source> <destination>
+status cp2(const char *src, const char *dest);
+
+// Remove a file or a directory
+// Usage: rm2 <file> or rm2 -r <directory>
+status rm2(const char *filename);
+
+// Rename a file
+// Usage: rename2 <file> <newname>
+status rename2(const char *filename, const char *newname);
+
+// Print command history
+status history2();
 
 status execute_command();
 

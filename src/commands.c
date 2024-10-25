@@ -30,11 +30,7 @@ status cd2(const char *path) {
             perror("cd2");
             return ERROR;
         }
-    }
-    // else if (strcmp(path, "") == 0) {
-    //     return cd_home();
-    //     }
-    else {
+    } else {
         if (chdir(path) != 0) {
             perror("cd2");
             return ERROR;
@@ -56,8 +52,6 @@ status ls2(const char *directory) {
         perror("ls2");
         return ERROR;
     }
-
-    printf("Listing contents of directory '%s':\n", directory);
 
     while ((entry = readdir(dir)) != NULL) {
         if (entry->d_type == DT_DIR) {
@@ -89,10 +83,57 @@ status touch2(const char *filename) {
     return OK;
 }
 
+status echo2(const char *message) {
+    printf("%s\n", message);
+    return OK;
+}
+
 status history2() {
     for (int i = 0; i < history_cnt; i++) {
         printf("%d: %s\n", i + 1, history[i]);
     }
+    return OK;
+}
+
+status cat2(const char *filename) {
+    FILE *file;
+    char ch;
+
+    file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("cat2");
+        return ERROR;
+    }
+    while ((ch = fgetc(file)) != EOF) {
+        putchar(ch);
+    }
+    fclose(file);
+    return OK;
+}
+
+status cp2(const char *src, const char *dest) {
+    FILE *source, *target;
+    char ch;
+
+    source = fopen(src, "rb");
+    if (source == NULL) {
+        perror("cp2");
+        return ERROR;
+    }
+
+    target = fopen(dest, "wb");
+    if (target == NULL) {
+        fclose(source);
+        perror("cp2");
+        return ERROR;
+    }
+
+    while ((ch = fgetc(source)) != EOF) {
+        fputc(ch, target);
+    }
+
+    fclose(source);
+    fclose(target);
     return OK;
 }
 
@@ -108,21 +149,21 @@ status execute_command() {
                 fprintf(stderr, "pwd2: too many arguments\n");
                 return ERROR;
             }
-            pwd2();
+            return pwd2();
         } else if (strcmp(cmd, "cd2") == 0) {
             if (argc == 1) {
-                cd2(NULL);
+                return cd2(NULL);
             } else if (argc == 2) {
-                cd2(command[1]);
+                return cd2(command[1]);
             } else {
                 fprintf(stderr, "cd2: too many arguments\n");
                 return ERROR;
             }
         } else if (strcmp(cmd, "ls2") == 0) {
             if (argc == 1) {
-                ls2(NULL);
+                return ls2(NULL);
             } else if (argc == 2) {
-                ls2(command[1]);
+                return ls2(command[1]);
             } else {
                 fprintf(stderr, "ls2: too many arguments\n");
                 return ERROR;
@@ -131,12 +172,37 @@ status execute_command() {
             if (argc == 1) {
                 fprintf(stderr, "touch2: missing filename\n");
             } else if (argc == 2) {
-                touch2(command[1]);
+                return touch2(command[1]);
             } else {
                 fprintf(stderr, "touch2: too many arguments\n");
                 return ERROR;
             }
-        } else if (strcmp(cmd, "history2") == 0) {
+        } else if (strcmp(cmd, "echo2") == 0) {
+            if (argc == 1) {
+                return echo2("");
+            } else if (has_pipe == FALSE && has_redirect == FALSE) {
+                char *message = buf + 6; // Remove "echo2 "
+                return echo2(message);
+            }
+        } else if (strcmp(cmd, "cat2") == 0) {
+            if (argc == 1) {
+                fprintf(stderr, "cat2: missing filename\n");
+                return ERROR;
+            }
+            return cat2(command[1]);
+        } else if (strcmp(cmd, "cp2") == 0) {
+            if (argc <= 2) {
+                fprintf(stderr, "cp2: too few arguments\n");
+                return ERROR;
+            } else if (argc == 3) {
+                return cp2(command[1], command[2]);
+            } else {
+                fprintf(stderr, "cp2: too many arguments\n");
+                return ERROR;
+            }
+        }
+
+        else if (strcmp(cmd, "history2") == 0) {
             if (argc > 1) {
                 fprintf(stderr, "history2: too many arguments\n");
                 return ERROR;

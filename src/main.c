@@ -35,7 +35,7 @@ void run() {
             return;
         }
 #ifdef DEBUG
-        printf("[Debug]user input: %s\n", buf);
+        // printf("[Debug]user input: %s\n", buf);
 #endif
 
         parse_input();
@@ -54,6 +54,9 @@ int main() {
     init();
     printf("===== Welcome to Allen's shell demo! =====\n");
     cd_home();
+#ifdef DEBUG
+    cd2("/tmp/test");
+#endif
     run();
     printf("===== Goodbye from shell demo! =====\n");
     return 0;
