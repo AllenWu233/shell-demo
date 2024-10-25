@@ -35,14 +35,14 @@ void run() {
             return;
         }
 #ifdef DEBUG
-        // printf("[Debug]user input: %s\n", buf);
+        // fprintf(stderr, "[Debug]user input: %s\n", buf);
 #endif
 
         parse_input();
 #ifdef DEBUG
-        printf("[Debug]argc: %d\n", argc);
+        fprintf(stderr, "[Debug]argc: %d\n", argc);
         for (int i = 0; i < argc; i++) {
-            printf("[Debug]command[%d]: %s\n", i, command[i]);
+            fprintf(stderr, "[Debug]command[%d]: %s\n", i, command[i]);
         }
 #endif
 
@@ -60,5 +60,4 @@ int main() {
 #endif
     run();
     printf("===== Goodbye from shell demo! =====\n");
-    return 0;
 }
