@@ -15,7 +15,6 @@ status cd_home() {
         fprintf(stderr, "HOME environment variable not set\n");
         return ERROR;
     }
-
     if (chdir(home) != 0) {
         perror("chdir");
     }
@@ -343,6 +342,7 @@ status execute_command() {
                 return ERROR;
             }
         }
+        return OK;
+    } else if (has_redirect == TRUE) {
     }
-    return OK;
 }
