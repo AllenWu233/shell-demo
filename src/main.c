@@ -55,6 +55,7 @@ int main() {
     printf("===== Welcome to Allen's shell demo! =====\n");
     cd_home();
 #ifdef DEBUG
+    system("mkdir /tmp/test");
     cd2("/tmp/test");
 #endif
     run();

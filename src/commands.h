@@ -4,9 +4,11 @@
 #include "constants.h"
 #include "globals.h"
 #include <dirent.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <utime.h>
 
@@ -46,7 +48,7 @@ status cp2(const char *src, const char *dest);
 
 // Remove a file or a directory
 // Usage: rm2 <file> or rm2 -r <directory>
-status rm2(const char *filename);
+status rm2(const char *flag, const char *filename);
 
 // Rename a file
 // Usage: rename2 <file> <newname>
