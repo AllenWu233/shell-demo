@@ -137,6 +137,14 @@ status cp2(const char *src, const char *dest) {
     return OK;
 }
 
+status rename2(const char *filename, const char *newname) {
+    if (rename(filename, newname) != 0) {
+        perror("rename2");
+        return ERROR;
+    }
+    return OK;
+}
+
 status execute_command() {
     if (argc == 0) {
         fprintf(stderr, "-shell-demo: no command given\n");
@@ -198,6 +206,26 @@ status execute_command() {
                 return cp2(command[1], command[2]);
             } else {
                 fprintf(stderr, "cp2: too many arguments\n");
+                return ERROR;
+            }
+        } else if (strcmp(cmd, "rm2") == 0) {
+            if (argc <= 2) {
+                fprintf(stderr, "rm2: too few arguments\n");
+                return ERROR;
+            } else if (argc == 3) {
+                // return rm2(command[1], command[2]);
+            } else {
+                fprintf(stderr, "rm2: too many arguments\n");
+                return ERROR;
+            }
+        } else if (strcmp(cmd, "rename2") == 0) {
+            if (argc <= 2) {
+                fprintf(stderr, "rename2: too few arguments\n");
+                return ERROR;
+            } else if (argc == 3) {
+                return rename2(command[1], command[2]);
+            } else {
+                fprintf(stderr, "rename2: too many arguments\n");
                 return ERROR;
             }
         }
