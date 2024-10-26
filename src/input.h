@@ -30,8 +30,8 @@ Status get_input();
 Status parse_input();
 
 // Gheck redirect type
-Redirect parse_redirect();
+Redirect parse_redirect(int argc, char *argv[]);
 
-char *get_redirect_filename();
+char *get_redirect_filename(int argc, char *argv[]);
 
 #endif

@@ -5,6 +5,7 @@
 #include "globals.h"
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +58,8 @@ Status rename2(const char *filename, const char *newname);
 // Print command history
 Status history2();
 
-Status execute_command(char *argv[]);
+Status execute_normal_command(int argc, char *argv[]);
+
+Status execute_command(int argc, char *argv[]);
 
 #endif

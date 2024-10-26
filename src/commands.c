@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "globals.h"
+#include "input.h"
 
 Status pwd2() {
     char buf[BUFF_SIZE];
@@ -221,131 +222,176 @@ Status history2() {
     return OK;
 }
 
-Status execute_command(char *argv[]) {
-    if (argc == 0) {
+Status execute_normal_command(int argc, char *argv[]) {
+    if (argc == 0 || argv == NULL) {
         fprintf(stderr, "-shell-demo: no command given\n");
     }
 
     char *cmd = argv[0];
-    if (has_pipe == FALSE && has_redirect == FALSE) {
-        if (strcmp(cmd, "pwd2") == 0) {
-            if (argc > 1) {
-                fprintf(stderr, "pwd2: too many arguments\n");
-                return ERROR;
-            }
-            return pwd2();
+    if (strcmp(cmd, "pwd2") == 0) {
+        if (argc > 1) {
+            fprintf(stderr, "pwd2: too many arguments\n");
+            return ERROR;
         }
-
-        else if (strcmp(cmd, "cd2") == 0) {
-            if (argc == 1) {
-                return cd2(NULL);
-            } else if (argc == 2) {
-                return cd2(argv[1]);
-            } else {
-                fprintf(stderr, "cd2: too many arguments\n");
-                return ERROR;
-            }
-        }
-
-        else if (strcmp(cmd, "ls2") == 0) {
-            if (argc == 1) {
-                return ls2(NULL);
-            } else if (argc == 2) {
-                return ls2(argv[1]);
-            } else {
-                fprintf(stderr, "ls2: too many arguments\n");
-                return ERROR;
-            }
-        }
-
-        else if (strcmp(cmd, "touch2") == 0) {
-            if (argc == 1) {
-                fprintf(stderr, "touch2: missing filename\n");
-            } else if (argc == 2) {
-                return touch2(argv[1]);
-            } else {
-                fprintf(stderr, "touch2: too many arguments\n");
-                return ERROR;
-            }
-        }
-
-        else if (strcmp(cmd, "echo2") == 0) {
-            if (argc == 1) {
-                return echo2("");
-            } else if (has_pipe == FALSE && has_redirect == FALSE) {
-                char *message = buf + 6; // Remove "echo2 "
-                return echo2(message);
-            }
-        }
-
-        else if (strcmp(cmd, "cat2") == 0) {
-            if (argc == 1) {
-                fprintf(stderr, "cat2: missing filename\n");
-                return ERROR;
-            }
-            return cat2(argv[1]);
-        }
-
-        else if (strcmp(cmd, "cp2") == 0) {
-            if (argc <= 2) {
-                fprintf(stderr, "cp2: too few arguments\n");
-                return ERROR;
-            } else if (argc == 3) {
-                return cp2(argv[1], argv[2]);
-            } else {
-                fprintf(stderr, "cp2: too many arguments\n");
-                return ERROR;
-            }
-        }
-
-        else if (strcmp(cmd, "rm2") == 0) {
-            if (argc == 1) {
-                fprintf(stderr, "rm2: missing file name\n");
-                return ERROR;
-            } else if (argc == 2) {
-                if (strcmp(argv[1], "-r") == 0) {
-                    fprintf(stderr, "rm2: missing directory name\n");
-                    return ERROR;
-                }
-                return rm2(NULL, argv[1]);
-            } else if (argc == 3 && strcmp(argv[1], "-r") == 0) {
-                return rm2("-r", argv[2]);
-            } else {
-                fprintf(stderr, "rm2: too many arguments\n");
-                return ERROR;
-            }
-        }
-
-        else if (strcmp(cmd, "rename2") == 0) {
-            if (argc <= 2) {
-                fprintf(stderr, "rename2: too few arguments\n");
-                return ERROR;
-            } else if (argc == 3) {
-                return rename2(argv[1], argv[2]);
-            } else {
-                fprintf(stderr, "rename2: too many arguments\n");
-                return ERROR;
-            }
-        }
-
-        else if (strcmp(cmd, "history2") == 0) {
-            if (argc > 1) {
-                fprintf(stderr, "history2: too many arguments\n");
-                return ERROR;
-            }
-            return history2();
-        }
-
-        // If command is not recognized, execute it as a system command
-        else {
-            if (system(buf) != 0) {
-                return ERROR;
-            }
-        }
-        return OK;
+        return pwd2();
     }
 
-    else if (has_redirect == TRUE) {
-        ;
+    else if (strcmp(cmd, "cd2") == 0) {
+        if (argc == 1) {
+            return cd2(NULL);
+        } else if (argc == 2) {
+            return cd2(argv[1]);
+        } else {
+            fprintf(stderr, "cd2: too many arguments\n");
+            return ERROR;
+        }
+    }
+
+    else if (strcmp(cmd, "ls2") == 0) {
+        if (argc == 1) {
+            return ls2(NULL);
+        } else if (argc == 2) {
+            return ls2(argv[1]);
+        } else {
+            fprintf(stderr, "ls2: too many arguments\n");
+            return ERROR;
+        }
+    }
+
+    else if (strcmp(cmd, "touch2") == 0) {
+        if (argc == 1) {
+            fprintf(stderr, "touch2: missing filename\n");
+        } else if (argc == 2) {
+            return touch2(argv[1]);
+        } else {
+            fprintf(stderr, "touch2: too many arguments\n");
+            return ERROR;
+        }
+    }
+
+    else if (strcmp(cmd, "echo2") == 0) {
+        if (argc == 1) {
+            return echo2("");
+        } else if (has_pipe == FALSE && has_redirect == FALSE) {
+            char *message = buf + 6; // Remove "echo2 "
+            return echo2(message);
+        }
+    }
+
+    else if (strcmp(cmd, "cat2") == 0) {
+        if (argc == 1) {
+            fprintf(stderr, "cat2: missing filename\n");
+            return ERROR;
+        }
+        return cat2(argv[1]);
+    }
+
+    else if (strcmp(cmd, "cp2") == 0) {
+        if (argc <= 2) {
+            fprintf(stderr, "cp2: too few arguments\n");
+            return ERROR;
+        } else if (argc == 3) {
+            return cp2(argv[1], argv[2]);
+        } else {
+            fprintf(stderr, "cp2: too many arguments\n");
+            return ERROR;
+        }
+    }
+
+    else if (strcmp(cmd, "rm2") == 0) {
+        if (argc == 1) {
+            fprintf(stderr, "rm2: missing file name\n");
+            return ERROR;
+        } else if (argc == 2) {
+            if (strcmp(argv[1], "-r") == 0) {
+                fprintf(stderr, "rm2: missing directory name\n");
+                return ERROR;
+            }
+            return rm2(NULL, argv[1]);
+        } else if (argc == 3 && strcmp(argv[1], "-r") == 0) {
+            return rm2("-r", argv[2]);
+        } else {
+            fprintf(stderr, "rm2: too many arguments\n");
+            return ERROR;
+        }
+    }
+
+    else if (strcmp(cmd, "rename2") == 0) {
+        if (argc <= 2) {
+            fprintf(stderr, "rename2: too few arguments\n");
+            return ERROR;
+        } else if (argc == 3) {
+            return rename2(argv[1], argv[2]);
+        } else {
+            fprintf(stderr, "rename2: too many arguments\n");
+            return ERROR;
+        }
+    }
+
+    else if (strcmp(cmd, "history2") == 0) {
+        if (argc > 1) {
+            fprintf(stderr, "history2: too many arguments\n");
+            return ERROR;
+        }
+        return history2();
+    }
+
+    // If command is not recognized, execute it as a system command
+    else {
+        if (system(buf) != 0) {
+            return ERROR;
+        }
+    }
+    return OK;
+}
+
+Status execute_command(int argc, char *argv[]) {
+    if (has_pipe == TRUE) {
+        return OK;
+    } else if (has_redirect == TRUE) {
+        Redirect redirect_type = parse_redirect(argc, argv);
+        char *filename = get_redirect_filename(argc, argv);
+
+        // Save original stdout
+        int stdout_copy = dup(STDOUT_FILENO);
+        if (stdout_copy == -1) {
+            perror("dup");
+            return ERROR;
+        }
+
+        int flags = O_WRONLY | O_CREAT;
+        if (redirect_type == WRITE) {
+            flags |= O_TRUNC;
+        } else {
+            flags |= O_APPEND;
+        }
+
+        int fd = open(filename, flags, 0644);
+        if (fd == -1) {
+            perror("Redirection failed");
+            close(stdout_copy);
+            return ERROR;
+        }
+
+        // Redirect stdout to the file
+        if (dup2(fd, STDOUT_FILENO) == -1) {
+            perror("dup2");
+            close(fd);
+            close(stdout_copy);
+            return ERROR;
+        }
+
+        if (redirect_type == WRITE) {
+            execute_normal_command(argc - 1, argv);
+        } else {
+            execute_normal_command(argc - 2, argv);
+        }
+
+        close(fd);
+
+        return OK;
+
+    } else {
+        return execute_normal_command(argc, argv);
     }
 }

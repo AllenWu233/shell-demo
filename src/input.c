@@ -34,6 +34,7 @@ Status get_input() {
 Status parse_input() {
     // Reset the command array and token counter
     memset(cmd_line, 0, sizeof(cmd_line));
+    memset(argv, 0, sizeof(argv));
     argc = 0;
 
     int len = strlen(buf);
@@ -47,30 +48,38 @@ Status parse_input() {
             // If there was a token being built, end it and start a new token
             // for '|' or '>'
             if (j > 0) {
-                cmd_line[argc++][j] = '\0';
+                cmd_line[argc][j] = '\0';
+                argv[argc] = cmd_line[argc];
+                argc++;
                 j = 0;
             }
             // Treat '|' or '>' as separate tokens
             cmd_line[argc][0] = buf[i];
-            cmd_line[argc++][1] = '\0';
+            cmd_line[argc][1] = '\0';
+            argv[argc] = cmd_line[argc];
+            argc++;
         } else if (buf[i] != ' ') {
             cmd_line[argc][j++] = buf[i];
         } else if (j > 0) { // Space after a non-space character
             // If there was a token being built, end it
-            cmd_line[argc++][j] = '\0';
+            cmd_line[argc][j] = '\0';
+            argv[argc] = cmd_line[argc];
+            argc++;
             j = 0;
         }
     }
 
     // Add the last token if there are characters left
     if (j > 0) {
-        cmd_line[argc++][j] = '\0';
+        cmd_line[argc][j] = '\0';
+        argv[argc] = cmd_line[argc];
+        argc++;
     }
 
     return OK;
 }
 
-Redirect parse_redirect() {
+Redirect parse_redirect(int argc, char *argv[]) {
     if (has_redirect == FALSE) {
         return NONE;
     }
@@ -78,10 +87,10 @@ Redirect parse_redirect() {
     int cnt = 0;
     Redirect redirect_type = NONE;
     for (int i = 0; i < argc; i++) {
-        if (strcmp(cmd_line[i], ">") == 0) {
+        if (strcmp(argv[i], ">") == 0) {
             if (cnt > 0) {
-                if (redirect_type == WRITE &&
-                    strcmp(cmd_line[i - 1], ">") == 0 && i == argc - 2) {
+                if (redirect_type == WRITE && strcmp(argv[i - 1], ">") == 0 &&
+                    i == argc - 2) {
                     redirect_type = APPEND;
                 } else {
                     return ERR_RDCT;
@@ -94,17 +103,17 @@ Redirect parse_redirect() {
         }
     }
 
-    if (redirect_type == WRITE && strcmp(cmd_line[argc - 2], ">") != 0) {
+    if (redirect_type == WRITE && strcmp(argv[argc - 2], ">") != 0) {
         redirect_type = ERR_RDCT;
     }
     return redirect_type;
 }
 
-char *get_redirect_filename() {
-    if (strcmp(cmd_line[argc - 2], ">") == 0) {
-        return cmd_line[argc - 1];
+char *get_redirect_filename(int argc, char *argv[]) {
+    if (argc >= 3 && strcmp(argv[argc - 2], ">") == 0) {
+        return argv[argc - 1];
     }
     return NULL;
 }
 
-Bool parse_pipe() {}
+Bool parse_pipe() { return TRUE; }
