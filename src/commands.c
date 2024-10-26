@@ -1,6 +1,7 @@
 #include "commands.h"
 #include "globals.h"
 #include "input.h"
+#include <stdio.h>
 
 Status pwd2() {
     char buf[BUFF_SIZE];
@@ -223,7 +224,7 @@ Status history2() {
 }
 
 Status execute_normal_command(int argc, char *argv[]) {
-    if (argc == 0 || argv == NULL) {
+    if (argc <= 0 || argv == NULL) {
         fprintf(stderr, "-shell-demo: no command given\n");
     }
 
@@ -272,9 +273,10 @@ Status execute_normal_command(int argc, char *argv[]) {
     else if (strcmp(cmd, "echo2") == 0) {
         if (argc == 1) {
             return echo2("");
-        } else if (has_pipe == FALSE && has_redirect == FALSE) {
-            char *message = buf + 6; // Remove "echo2 "
-            return echo2(message);
+        } else if (argc == 2) {
+            return echo2(argv[1]);
+        } else {
+            fprintf(stderr, "echo2: too many arguments\n");
         }
     }
 
@@ -346,6 +348,8 @@ Status execute_normal_command(int argc, char *argv[]) {
 }
 
 Status execute_command(int argc, char *argv[]) {
+    Status result;
+
     if (has_pipe == TRUE) {
         return OK;
     } else if (has_redirect == TRUE) {
@@ -382,14 +386,21 @@ Status execute_command(int argc, char *argv[]) {
         }
 
         if (redirect_type == WRITE) {
-            execute_normal_command(argc - 1, argv);
+            result = execute_normal_command(argc - 2, argv);
         } else {
-            execute_normal_command(argc - 2, argv);
+            result = execute_normal_command(argc - 3, argv);
+        }
+
+        // Restore original stdout
+        if (dup2(stdout_copy, STDOUT_FILENO) == -1) {
+            perror("dup2");
+            result = ERROR;
         }
 
         close(fd);
+        close(stdout_copy);
 
-        return OK;
+        return result;
 
     } else {
         return execute_normal_command(argc, argv);
