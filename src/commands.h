@@ -13,50 +13,50 @@
 #include <utime.h>
 
 // Change to home directory
-status cd_home();
+Status cd_home();
 
 // Print working directory
-status pwd2();
+Status pwd2();
 
 // Change directory
 // Usage: cd <path>
 // If no path is provided, change to home directory.
 // If path is provided, change to that directory.
 // 'cd -' will change to the previous directory.
-status cd2(const char *path);
+Status cd2(const char *path);
 
 // List directory contents
 // Usage: ls <directory>
 // If no directory is provided, list contents of current directory.
-status ls2(const char *directory);
+Status ls2(const char *directory);
 
 // Create a new file
 // Usage: touch <file>
-status touch2(const char *filename);
+Status touch2(const char *filename);
 
 // Print a message
 // Usage: echo <message>
-status echo2(const char *message);
+Status echo2(const char *message);
 
 // Print contents of a file
 // Usage: cat2 <file>
-status cat2(const char *filename);
+Status cat2(const char *filename);
 
 // Copy a file
 // Usage: cp <source> <destination>
-status cp2(const char *src, const char *dest);
+Status cp2(const char *src, const char *dest);
 
 // Remove a file or a directory
 // Usage: rm2 <file> or rm2 -r <directory>
-status rm2(const char *flag, const char *filename);
+Status rm2(const char *flag, const char *filename);
 
 // Rename a file
 // Usage: rename2 <file> <newname>
-status rename2(const char *filename, const char *newname);
+Status rename2(const char *filename, const char *newname);
 
 // Print command history
-status history2();
+Status history2();
 
-status execute_command();
+Status execute_command();
 
 #endif

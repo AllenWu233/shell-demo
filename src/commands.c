@@ -1,14 +1,14 @@
 #include "commands.h"
 #include "globals.h"
 
-status pwd2() {
+Status pwd2() {
     char buf[BUFF_SIZE];
     getcwd(buf, sizeof(char) * BUFF_SIZE);
     printf("%s\n", buf);
     return OK;
 }
 
-status cd_home() {
+Status cd_home() {
     char *home = getenv("HOME");
 
     if (home == NULL) {
@@ -21,7 +21,7 @@ status cd_home() {
     return OK;
 }
 
-status cd2(const char *path) {
+Status cd2(const char *path) {
     if (path == NULL) {
         return cd_home();
     } else if (strcmp(path, "-") == 0) {
@@ -38,7 +38,7 @@ status cd2(const char *path) {
     return OK;
 }
 
-status ls2(const char *directory) {
+Status ls2(const char *directory) {
     DIR *dir;
     struct dirent *entry;
     if (directory == NULL) {
@@ -68,7 +68,7 @@ status ls2(const char *directory) {
     return OK;
 }
 
-status touch2(const char *filename) {
+Status touch2(const char *filename) {
     if (filename == NULL) {
         fprintf(stderr, "touch2: missing filename\n");
         return ERROR;
@@ -86,12 +86,12 @@ status touch2(const char *filename) {
     return OK;
 }
 
-status echo2(const char *message) {
+Status echo2(const char *message) {
     printf("%s\n", message);
     return OK;
 }
 
-status cat2(const char *filename) {
+Status cat2(const char *filename) {
     FILE *file;
     char ch;
 
@@ -107,7 +107,7 @@ status cat2(const char *filename) {
     return OK;
 }
 
-status cp2(const char *src, const char *dest) {
+Status cp2(const char *src, const char *dest) {
     FILE *source, *target;
     char ch;
 
@@ -133,7 +133,7 @@ status cp2(const char *src, const char *dest) {
     return OK;
 }
 
-status rename2(const char *filename, const char *newname) {
+Status rename2(const char *filename, const char *newname) {
     if (rename(filename, newname) != 0) {
         perror("rename2");
         return ERROR;
@@ -141,7 +141,7 @@ status rename2(const char *filename, const char *newname) {
     return OK;
 }
 
-status rm2(const char *flag, const char *filename) {
+Status rm2(const char *flag, const char *filename) {
     struct stat st;
 
     // Check if file exists
@@ -214,19 +214,19 @@ status rm2(const char *flag, const char *filename) {
     return ERROR;
 }
 
-status history2() {
+Status history2() {
     for (int i = 0; i < history_cnt; i++) {
         printf("%d: %s\n", i + 1, history[i]);
     }
     return OK;
 }
 
-status execute_command() {
+Status execute_command() {
     if (argc == 0) {
         fprintf(stderr, "-shell-demo: no command given\n");
     }
 
-    char *cmd = command[0];
+    char *cmd = cmd_line[0];
     if (has_pipe == FALSE && has_redirect == FALSE) {
         if (strcmp(cmd, "pwd2") == 0) {
             if (argc > 1) {
@@ -240,7 +240,7 @@ status execute_command() {
             if (argc == 1) {
                 return cd2(NULL);
             } else if (argc == 2) {
-                return cd2(command[1]);
+                return cd2(cmd_line[1]);
             } else {
                 fprintf(stderr, "cd2: too many arguments\n");
                 return ERROR;
@@ -251,7 +251,7 @@ status execute_command() {
             if (argc == 1) {
                 return ls2(NULL);
             } else if (argc == 2) {
-                return ls2(command[1]);
+                return ls2(cmd_line[1]);
             } else {
                 fprintf(stderr, "ls2: too many arguments\n");
                 return ERROR;
@@ -262,7 +262,7 @@ status execute_command() {
             if (argc == 1) {
                 fprintf(stderr, "touch2: missing filename\n");
             } else if (argc == 2) {
-                return touch2(command[1]);
+                return touch2(cmd_line[1]);
             } else {
                 fprintf(stderr, "touch2: too many arguments\n");
                 return ERROR;
@@ -283,7 +283,7 @@ status execute_command() {
                 fprintf(stderr, "cat2: missing filename\n");
                 return ERROR;
             }
-            return cat2(command[1]);
+            return cat2(cmd_line[1]);
         }
 
         else if (strcmp(cmd, "cp2") == 0) {
@@ -291,7 +291,7 @@ status execute_command() {
                 fprintf(stderr, "cp2: too few arguments\n");
                 return ERROR;
             } else if (argc == 3) {
-                return cp2(command[1], command[2]);
+                return cp2(cmd_line[1], cmd_line[2]);
             } else {
                 fprintf(stderr, "cp2: too many arguments\n");
                 return ERROR;
@@ -303,13 +303,13 @@ status execute_command() {
                 fprintf(stderr, "rm2: missing file name\n");
                 return ERROR;
             } else if (argc == 2) {
-                if (strcmp(command[1], "-r") == 0) {
+                if (strcmp(cmd_line[1], "-r") == 0) {
                     fprintf(stderr, "rm2: missing directory name\n");
                     return ERROR;
                 }
-                return rm2(NULL, command[1]);
-            } else if (argc == 3 && strcmp(command[1], "-r") == 0) {
-                return rm2("-r", command[2]);
+                return rm2(NULL, cmd_line[1]);
+            } else if (argc == 3 && strcmp(cmd_line[1], "-r") == 0) {
+                return rm2("-r", cmd_line[2]);
             } else {
                 fprintf(stderr, "rm2: too many arguments\n");
                 return ERROR;
@@ -321,7 +321,7 @@ status execute_command() {
                 fprintf(stderr, "rename2: too few arguments\n");
                 return ERROR;
             } else if (argc == 3) {
-                return rename2(command[1], command[2]);
+                return rename2(cmd_line[1], cmd_line[2]);
             } else {
                 fprintf(stderr, "rename2: too many arguments\n");
                 return ERROR;
@@ -343,6 +343,9 @@ status execute_command() {
             }
         }
         return OK;
-    } else if (has_redirect == TRUE) {
+    }
+
+    else if (has_redirect == TRUE) {
+        ;
     }
 }

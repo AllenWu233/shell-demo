@@ -4,12 +4,14 @@
 
 char buf[BUFF_SIZE];
 char current_path[BUFF_SIZE];
-char command[MAX_CMD][MAX_CMD_LEN];
+char cmd_line[MAX_CMD][MAX_CMD_LEN];
 char history[MAX_HISTORY][BUFF_SIZE];
 int argc;
 int history_cnt;
-boolean has_pipe;
-boolean has_redirect;
+Bool has_pipe;
+Bool has_redirect;
+
+const char *const redirect_str[] = {"NONE", "APPEND", "WRITE", "ERR_RDCT"};
 
 // Initialize global variables
 void init() {
@@ -42,8 +44,12 @@ void run() {
 #ifdef DEBUG
         fprintf(stderr, "[Debug]argc: %d\n", argc);
         for (int i = 0; i < argc; i++) {
-            fprintf(stderr, "[Debug]command[%d]: %s\n", i, command[i]);
+            fprintf(stderr, "[Debug]cmd_line[%d]: %s\n", i, cmd_line[i]);
         }
+        Redirect type = parse_redirect();
+        fprintf(stderr, "[Debug]redirect type: %s\n", redirect_str[type]);
+        char *filename = get_redirect_filename();
+        fprintf(stderr, "[Debug]redirect filename: %s\n", filename);
 #endif
 
         execute_command();

@@ -8,11 +8,11 @@
 #include <unistd.h>
 
 // Add input to history array
-status add_to_history();
+Status add_to_history();
 
 // Get user input, including spaces
 // and save history of input to array 'historys'
-status get_input();
+Status get_input();
 
 /*
  * Parse the input string stored in 'buf' and tokenize it based on spaces,
@@ -27,6 +27,11 @@ status get_input();
  * Returns:
  *     'OK' on successful parsing.
  */
-status parse_input();
+Status parse_input();
+
+// Gheck redirect type
+Redirect parse_redirect();
+
+char *get_redirect_filename();
 
 #endif
