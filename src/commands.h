@@ -6,13 +6,18 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <unistd.h>
 #include <utime.h>
+
+// Save error message to log file
+void log_error(const char *cmd, const char *error_msg);
 
 // Change to home directory
 Status cd_home();
@@ -50,7 +55,7 @@ Status cp2(const char *src, const char *dest);
 
 // Remove a file or a directory
 // Usage: rm2 <file> or rm2 -r <directory>
-Status rm2(const char *flag, const char *filename);
+Status rm2(const char *pathname, Bool recursive);
 
 // Rename a file
 // Usage: rename2 <file> <newname>

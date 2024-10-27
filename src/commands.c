@@ -1,7 +1,20 @@
 #include "commands.h"
+#include "constants.h"
 #include "globals.h"
 #include "input.h"
-#include <stdio.h>
+
+void log_error(const char *cmd, const char *error_msg) {
+    FILE *err_log = fopen(err_log_path, "a");
+    if (err_log != NULL) {
+        time_t now = time(NULL);
+        char *time_str = ctime(&now);
+        time_str[strlen(time_str) - 1] = '\0';
+        fprintf(err_log, "[%s] Command: %s - Error: %s\n", time_str, cmd,
+                error_msg);
+        fclose(err_log);
+    }
+    fprintf(stderr, "%s: %s\n", cmd, error_msg);
+}
 
 Status pwd2() {
     char buf[BUFF_SIZE];
@@ -89,7 +102,9 @@ Status touch2(const char *filename) {
 }
 
 Status echo2(const char *message) {
-    printf("%s\n", message);
+    if (message != NULL) {
+        printf("%s\n", message);
+    }
     return OK;
 }
 
@@ -143,77 +158,46 @@ Status rename2(const char *filename, const char *newname) {
     return OK;
 }
 
-Status rm2(const char *flag, const char *filename) {
+Status rm2(const char *filename, Bool recursive) {
     struct stat st;
-
-    // Check if file exists
     if (stat(filename, &st) == -1) {
-        fprintf(stderr, "rm2: Error: %s not found\n", filename);
+        perror("rm2");
         return ERROR;
     }
 
-    // If flag is not specified, check if file is a regular file and delete it
-    if (flag == NULL || strlen(flag) == 0) {
-        if (S_ISREG(st.st_mode)) {
-            if (unlink(filename) == -1) {
-                fprintf(stderr, "rm2: Error removing file %s: %s\n", filename,
-                        strerror(errno));
-                return ERROR;
-            }
-            return OK;
-        } else {
-            fprintf(stderr, "rm2: Error: %s is a directory. Use -r flag\n",
+    if (S_ISDIR(st.st_mode)) {
+        if (recursive == FALSE) {
+            fprintf(stderr, "rm2: cannot remove %s: Is a directory\n",
                     filename);
             return ERROR;
         }
-    }
 
-    // If flag is -r, check if file is a directory and delete it recursively
-    if (strcmp(flag, "-r") == 0) {
-        DIR *dir;
-        struct dirent *entry;
-        char path[BUFF_SIZE];
-
-        // Check if file is a regular file and delete it
-        if (S_ISREG(st.st_mode)) {
-            if (unlink(filename) == -1) {
-                fprintf(stderr, "rm2: Error removing file %s: %s\n", filename,
-                        strerror(errno));
-                return ERROR;
-            }
-            return OK;
-        }
-
-        // Open directory
-        dir = opendir(filename);
-        if (dir == NULL) {
-            fprintf(stderr, "rm2: Error opening directory %s: %s\n", filename,
-                    strerror(errno));
+        DIR *dir = opendir(filename);
+        if (!dir) {
+            perror("rm2");
             return ERROR;
         }
 
-        // Delete the directory contents recursively
+        struct dirent *entry;
+        char full_path[MAX_PATH_LEN];
         while ((entry = readdir(dir)) != NULL) {
             if (strcmp(entry->d_name, ".") == 0 ||
                 strcmp(entry->d_name, "..") == 0)
                 continue;
 
-            snprintf(path, sizeof(path), "%s/%s", filename, entry->d_name);
-            rm2("-r", path);
+            if (snprintf(full_path, sizeof(full_path), "%s/%s", filename,
+                         entry->d_name) >= MAX_PATH_LEN) {
+                perror("snprintf");
+                return ERROR;
+            }
+            rm2(full_path, recursive);
         }
         closedir(dir);
-
-        // Delete empty directory
-        if (rmdir(filename) == -1) {
-            fprintf(stderr, "rm2: Error removing directory %s: %s\n", filename,
-                    strerror(errno));
-            return ERROR;
-        }
-        return OK;
+        rmdir(filename);
+    } else {
+        unlink(filename);
     }
-
-    fprintf(stderr, "rm2: Invalid flag: %s\n", flag);
-    return ERROR;
+    return OK;
 }
 
 Status history2() {
@@ -231,119 +215,164 @@ Status execute_normal_command(int argc, char *argv[]) {
     char *cmd = argv[0];
     if (strcmp(cmd, "pwd2") == 0) {
         if (argc > 1) {
-            fprintf(stderr, "pwd2: too many arguments\n");
+            // fprintf(stderr, "pwd2: too many arguments\n");
+            log_error("pwd2", "too many arguments");
             return ERROR;
         }
-        return pwd2();
+        if (pwd2() == ERROR) {
+            log_error("pwd2", "unknown error");
+            return ERROR;
+        }
     }
 
     else if (strcmp(cmd, "cd2") == 0) {
         if (argc == 1) {
-            return cd2(NULL);
+            if (cd2(NULL) == ERROR) {
+                log_error("cd2", "cannot change to home directory");
+                return ERROR;
+            }
         } else if (argc == 2) {
-            return cd2(argv[1]);
+            if (cd2(argv[1]) == ERROR) {
+                log_error("cd2", "cannot change to the directory");
+                return ERROR;
+            }
         } else {
-            fprintf(stderr, "cd2: too many arguments\n");
+            log_error("cd2", "too many arguments");
             return ERROR;
         }
     }
 
     else if (strcmp(cmd, "ls2") == 0) {
         if (argc == 1) {
-            return ls2(NULL);
+            if (ls2(NULL) == ERROR) {
+                log_error("ls2", "cannot list current directory");
+                return ERROR;
+            }
         } else if (argc == 2) {
-            return ls2(argv[1]);
+            if (ls2(argv[1]) == ERROR) {
+                log_error("ls2", "cannot list the directory");
+                return ERROR;
+            }
         } else {
-            fprintf(stderr, "ls2: too many arguments\n");
+            log_error("ls2", "too many arguments");
             return ERROR;
         }
     }
 
     else if (strcmp(cmd, "touch2") == 0) {
         if (argc == 1) {
-            fprintf(stderr, "touch2: missing filename\n");
+            log_error("touch2", "missing file name");
+            return ERROR;
         } else if (argc == 2) {
-            return touch2(argv[1]);
+            if (touch2(argv[1]) == ERROR) {
+                log_error("touch2", "cannot create file");
+                return ERROR;
+            }
         } else {
-            fprintf(stderr, "touch2: too many arguments\n");
+            log_error("touch2", "too many arguments");
             return ERROR;
         }
     }
 
     else if (strcmp(cmd, "echo2") == 0) {
         if (argc == 1) {
-            return echo2("");
+            if (echo2(NULL) == ERROR) {
+                log_error("echo2", "unknown error");
+                return ERROR;
+            }
         } else if (argc == 2) {
-            return echo2(argv[1]);
+            if (echo2(argv[1]) == ERROR) {
+                log_error("echo2", "unknown error");
+                return ERROR;
+            }
         } else {
-            fprintf(stderr, "echo2: too many arguments\n");
+            log_error("echo2", "too many arguments");
+            return ERROR;
         }
     }
 
     else if (strcmp(cmd, "cat2") == 0) {
         if (argc == 1) {
-            fprintf(stderr, "cat2: missing filename\n");
+            log_error("cat2", "missing file name");
             return ERROR;
         }
-        return cat2(argv[1]);
+        if (cat2(argv[1]) == ERROR) {
+            log_error("cat2", "cannot read file");
+            return ERROR;
+        }
     }
 
     else if (strcmp(cmd, "cp2") == 0) {
         if (argc <= 2) {
-            fprintf(stderr, "cp2: too few arguments\n");
+            log_error("cp2", "too few arguments");
             return ERROR;
         } else if (argc == 3) {
-            return cp2(argv[1], argv[2]);
+            if (cp2(argv[1], argv[2]) == ERROR) {
+                log_error("cp2", "cannot copy file");
+                return ERROR;
+            }
         } else {
-            fprintf(stderr, "cp2: too many arguments\n");
+            log_error("cp2", "too many arguments");
             return ERROR;
         }
     }
 
     else if (strcmp(cmd, "rm2") == 0) {
         if (argc == 1) {
-            fprintf(stderr, "rm2: missing file name\n");
+            log_error("rm2", "missing file name");
             return ERROR;
         } else if (argc == 2) {
             if (strcmp(argv[1], "-r") == 0) {
-                fprintf(stderr, "rm2: missing directory name\n");
+                log_error("rm2", "missing directory name");
                 return ERROR;
             }
-            return rm2(NULL, argv[1]);
+            if (rm2(argv[1], FALSE) == ERROR) {
+                log_error("rm2", "cannot remove file");
+                return ERROR;
+            }
         } else if (argc == 3 && strcmp(argv[1], "-r") == 0) {
-            return rm2("-r", argv[2]);
+            if (rm2(argv[2], TRUE) == ERROR) {
+                log_error("rm2", "cannot remove directory");
+                return ERROR;
+            }
         } else {
-            fprintf(stderr, "rm2: too many arguments\n");
+            log_error("rm2", "too many arguments");
             return ERROR;
         }
     }
 
     else if (strcmp(cmd, "rename2") == 0) {
         if (argc <= 2) {
-            fprintf(stderr, "rename2: too few arguments\n");
+            log_error("rename2", "too few arguments");
             return ERROR;
         } else if (argc == 3) {
-            return rename2(argv[1], argv[2]);
+            if (rename2(argv[1], argv[2]) == ERROR) {
+                log_error("rename2", "cannot rename file");
+            }
         } else {
-            fprintf(stderr, "rename2: too many arguments\n");
+            log_error("rename2", "too many arguments");
             return ERROR;
         }
     }
 
     else if (strcmp(cmd, "history2") == 0) {
         if (argc > 1) {
-            fprintf(stderr, "history2: too many arguments\n");
+            log_error("history2", "too many arguments");
             return ERROR;
         }
-        return history2();
+        if (history2() == ERROR) {
+            log_error("history2", "unknown error");
+        }
     }
 
     // If command is not recognized, execute it as a system command
     else {
         if (system(buf) != 0) {
+            log_error(cmd, "unknown error");
             return ERROR;
         }
     }
+
     return OK;
 }
 

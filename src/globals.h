@@ -3,8 +3,10 @@
 
 #include "constants.h"
 
-extern char buf[BUFF_SIZE];                 // Buffer to store the input command
-extern char current_path[BUFF_SIZE];        // Current working directory
+extern char buf[BUFF_SIZE];              // Buffer to store the input command
+extern char original_path[MAX_PATH_LEN]; // Original working directory]
+extern char current_path[MAX_PATH_LEN];  // Current working directory
+extern char err_log_path[MAX_PATH_LEN];
 extern char cmd_line[MAX_CMD][MAX_CMD_LEN]; // Array to store the parsed tokens
 extern char *argv[MAX_CMD];
 extern int

@@ -5,6 +5,7 @@
 #define MAX_CMD 50     // Max tokens in a command (including the command itself)
 #define MAX_CMD_LEN 30 // Max length of a token
 #define MAX_HISTORY 1000 // Max number of commands in history
+#define MAX_PATH_LEN 200
 
 typedef enum { OK, ERROR, QUIT } Status;
 typedef enum { TRUE, FALSE } Bool;
