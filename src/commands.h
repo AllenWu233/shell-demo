@@ -64,6 +64,9 @@ Status rename2(const char *filename, const char *newname);
 // Print command history
 Status history2();
 
+Status execute_external_command(char *argv[]);
+
+// Execute a command without redirection or piping
 Status execute_normal_command(int argc, char *argv[]);
 
 Status execute_command(int argc, char *argv[]);

@@ -207,6 +207,94 @@ Status history2() {
     return OK;
 }
 
+Status execute_external_command(char *argv[]) {
+    int pipe_fd[2];
+    if (pipe(pipe_fd) == -1) {
+        log_error(argv[0], "failed to create pipe");
+        return ERROR;
+    }
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        close(pipe_fd[0]);
+        close(pipe_fd[1]);
+        log_error(argv[0], "fork failed");
+        return ERROR;
+    }
+
+    if (pid == 0) {        // Child process
+        close(pipe_fd[0]); // Close read end
+
+        // Redirect stderr to pipe
+        dup2(pipe_fd[1], STDERR_FILENO);
+        close(pipe_fd[1]);
+
+        execvp(argv[0], argv);
+
+        // If execvp returns, it failed
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg), "failed to execute: %s",
+                 strerror(errno));
+        log_error(argv[0], error_msg);
+        exit(1);
+    } else {               // Parent process
+        close(pipe_fd[1]); // Close write end
+
+        // Read error output from child
+        char buffer[4096];
+        ssize_t bytes_read = read(pipe_fd[0], buffer, sizeof(buffer) - 1);
+        close(pipe_fd[0]);
+
+        int status;
+        waitpid(pid, &status, 0);
+
+        if (WIFEXITED(status)) {
+            int exit_status = WEXITSTATUS(status);
+            if (exit_status != 0) {
+                if (bytes_read > 0) {
+                    buffer[bytes_read] = '\0';
+                    // Remove trailing newline if present
+                    if (buffer[bytes_read - 1] == '\n') {
+                        buffer[bytes_read - 1] = '\0';
+                    }
+                    log_error(argv[0], buffer);
+                } else {
+                    char error_msg[256];
+                    snprintf(error_msg, sizeof(error_msg),
+                             "command failed with exit code %d", exit_status);
+                    log_error(argv[0], error_msg);
+                }
+                return ERROR;
+            }
+        } else if (WIFSIGNALED(status)) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),
+                     "command terminated by signal %d", WTERMSIG(status));
+            log_error(argv[0], error_msg);
+            return ERROR;
+        }
+    }
+    return OK;
+}
+
+// Status execute_external_command(char *argv[]) {
+//     pid_t pid = fork();
+//     if (pid == -1) {
+//         perror("fork");
+//         return ERROR;
+//     }
+//
+//     if (pid == 0) { // Child process
+//         execvp(argv[0], argv);
+//         perror("execvp");
+//         exit(1);
+//         return ERROR;
+//     } else { // Parent process
+//         wait(NULL);
+//     }
+//     return OK;
+// }
+
 Status execute_normal_command(int argc, char *argv[]) {
     if (argc <= 0 || argv == NULL) {
         fprintf(stderr, "-shell-demo: no command given\n");
@@ -367,8 +455,11 @@ Status execute_normal_command(int argc, char *argv[]) {
 
     // If command is not recognized, execute it as a system command
     else {
-        if (system(buf) != 0) {
-            log_error(cmd, "unknown error");
+        // if (system(buf) != 0) {
+        //     log_error(cmd, "unknown error");
+        //     return ERROR;
+        // }
+        if (execute_external_command(argv) == ERROR) {
             return ERROR;
         }
     }
