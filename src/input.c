@@ -127,5 +127,3 @@ char *get_redirect_filename(int argc, char *argv[]) {
     }
     return NULL;
 }
-
-Bool parse_pipe() { return TRUE; }

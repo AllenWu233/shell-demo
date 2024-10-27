@@ -230,6 +230,17 @@ Status execute_normal_command(int argc, char *argv[]) {
         }
     }
 
+    else if (strcmp(cmd, "minifetch") == 0) {
+        if (argc > 1) {
+            log_error("minifetch", "too many arguments");
+            return ERROR;
+        }
+        if (minifetch() == ERROR) {
+            log_error("minifetch", "unknown error");
+            return ERROR;
+        }
+    }
+
     // If command is not recognized, execute it as a system command
     else {
         if (execute_external_command(argv) == ERROR) {
@@ -417,64 +428,6 @@ Status execute_command_with_pipe(int argc, char *argv[]) {
 
     return OK;
 }
-
-// Status execute_command_with_pipe(int argc, char *argv[]) {
-//     Status result = OK;
-//
-//     int i; // '|' index
-//     for (i = 0; i < argc; i++) {
-//         if (strcmp(argv[i], "|") == 0) {
-//             break;
-//         }
-//     }
-//     argv[i] = NULL;
-//     char **cmd1 = argv;
-//     int argc1 = i;
-//     char **cmd2 = &argv[i + 1];
-//     int argc2 = argc - i - 1;
-//
-//     int pipefd[2];
-//     if (pipe(pipefd) == -1) {
-//         perror("pipe");
-//         return ERROR;
-//     }
-//
-//     pid_t pid1 = fork();
-//     if (pid1 == -1) {
-//         perror("fork");
-//         return ERROR;
-//     }
-//
-//     if (pid1 == 0) { // First child
-//         close(pipefd[0]);
-//         dup2(pipefd[1], STDOUT_FILENO);
-//         close(pipefd[1]);
-//         result = execute_command(argc1, cmd1);
-//         exit(1);
-//     }
-//
-//     pid_t pid2 = fork();
-//     if (pid2 == -1) {
-//         perror("fork");
-//         return ERROR;
-//     }
-//
-//     if (pid2 == 0) { // Second child
-//         close(pipefd[1]);
-//         dup2(pipefd[0], STDIN_FILENO);
-//         close(pipefd[0]);
-//         result = execute_command(argc2, cmd2);
-//         exit(1);
-//     }
-//
-//     // Parent process
-//     close(pipefd[0]);
-//     close(pipefd[1]);
-//     waitpid(pid1, NULL, 0);
-//     waitpid(pid2, NULL, 0);
-//
-//     return result;
-// }
 
 Status execute_command(int argc, char *argv[]) {
     if (argc <= 0) {

@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "globals.h"
+#include "minifetch.h"
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>

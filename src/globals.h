@@ -8,7 +8,7 @@ extern char original_path[MAX_PATH_LEN]; // Original working directory]
 extern char current_path[MAX_PATH_LEN];  // Current working directory
 extern char err_log_path[MAX_PATH_LEN];
 extern char cmd_line[MAX_CMD][MAX_CMD_LEN]; // Array to store the parsed tokens
-extern char *argv[MAX_CMD];
+extern char *argv[MAX_CMD]; // Pointer to the array of pointers to the tokens
 extern int
     argc; // Counter to keep track of the number of tokens. '|' and '>' are
           // treated as separate tokens regardless of surrounding spaces
