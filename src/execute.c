@@ -232,10 +232,6 @@ Status execute_normal_command(int argc, char *argv[]) {
 
     // If command is not recognized, execute it as a system command
     else {
-        // if (system(buf) != 0) {
-        //     log_error(cmd, "unknown error");
-        //     return ERROR;
-        // }
         if (execute_external_command(argv) == ERROR) {
             return ERROR;
         }
@@ -297,12 +293,197 @@ Status execute_command_with_redirect(int argc, char *argv[]) {
     return result;
 }
 
-Status execute_command_with_pipe(int argc, char *argv[]) {}
+Status execute_command_with_pipe(int argc, char *argv[]) {
+    // Find pipe symbol position
+    int i;
+    for (i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "|") == 0) {
+            break;
+        }
+    }
+
+    // Split commands
+    argv[i] = NULL;
+    char **cmd1 = argv;
+    int argc1 = i;
+    char **cmd2 = &argv[i + 1];
+    int argc2 = argc - i - 1;
+
+    // Validate commands
+    if (argc1 == 0 || argc2 == 0) {
+        log_error("pipe", "invalid pipe command syntax");
+        return ERROR;
+    }
+
+    // Create pipe
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        log_error("pipe", "failed to create pipe");
+        return ERROR;
+    }
+
+    // Fork first child
+    pid_t pid1 = fork();
+    if (pid1 == -1) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        log_error(cmd1[0], "fork failed for first command");
+        return ERROR;
+    }
+
+    if (pid1 == 0) { // First child
+        // Set up pipe output
+        close(pipefd[0]);
+        if (dup2(pipefd[1], STDOUT_FILENO) == -1) {
+            log_error(cmd1[0], "failed to redirect stdout");
+            exit(1);
+        }
+        close(pipefd[1]);
+
+        // Execute first command
+        Status result = execute_command(argc1, cmd1);
+        exit(result == ERROR ? 1 : 0);
+    }
+
+    // Fork second child
+    pid_t pid2 = fork();
+    if (pid2 == -1) {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        log_error(cmd2[0], "fork failed for second command");
+        kill(pid1, SIGTERM); // Terminate first child
+        return ERROR;
+    }
+
+    if (pid2 == 0) { // Second child
+        // Set up pipe input
+        close(pipefd[1]);
+        if (dup2(pipefd[0], STDIN_FILENO) == -1) {
+            log_error(cmd2[0], "failed to redirect stdin");
+            exit(1);
+        }
+        close(pipefd[0]);
+
+        // Execute second command
+        Status result = execute_command(argc2, cmd2);
+        exit(result == ERROR ? 1 : 0);
+    }
+
+    // Parent process
+    close(pipefd[0]);
+    close(pipefd[1]);
+
+    // Wait for children and check their status
+    int status1, status2;
+    waitpid(pid1, &status1, 0);
+    waitpid(pid2, &status2, 0);
+
+    // Check exit status of both processes
+    if (WIFEXITED(status1)) {
+        if (WEXITSTATUS(status1) != 0) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),
+                     "first command '%s' failed with exit code %d", cmd1[0],
+                     WEXITSTATUS(status1));
+            log_error("pipe", error_msg);
+            return ERROR;
+        }
+    } else if (WIFSIGNALED(status1)) {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                 "first command '%s' terminated by signal %d", cmd1[0],
+                 WTERMSIG(status1));
+        log_error("pipe", error_msg);
+        return ERROR;
+    }
+
+    if (WIFEXITED(status2)) {
+        if (WEXITSTATUS(status2) != 0) {
+            char error_msg[256];
+            snprintf(error_msg, sizeof(error_msg),
+                     "second command '%s' failed with exit code %d", cmd2[0],
+                     WEXITSTATUS(status2));
+            log_error("pipe", error_msg);
+            return ERROR;
+        }
+    } else if (WIFSIGNALED(status2)) {
+        char error_msg[256];
+        snprintf(error_msg, sizeof(error_msg),
+                 "second command '%s' terminated by signal %d", cmd2[0],
+                 WTERMSIG(status2));
+        log_error("pipe", error_msg);
+        return ERROR;
+    }
+
+    return OK;
+}
+
+// Status execute_command_with_pipe(int argc, char *argv[]) {
+//     Status result = OK;
+//
+//     int i; // '|' index
+//     for (i = 0; i < argc; i++) {
+//         if (strcmp(argv[i], "|") == 0) {
+//             break;
+//         }
+//     }
+//     argv[i] = NULL;
+//     char **cmd1 = argv;
+//     int argc1 = i;
+//     char **cmd2 = &argv[i + 1];
+//     int argc2 = argc - i - 1;
+//
+//     int pipefd[2];
+//     if (pipe(pipefd) == -1) {
+//         perror("pipe");
+//         return ERROR;
+//     }
+//
+//     pid_t pid1 = fork();
+//     if (pid1 == -1) {
+//         perror("fork");
+//         return ERROR;
+//     }
+//
+//     if (pid1 == 0) { // First child
+//         close(pipefd[0]);
+//         dup2(pipefd[1], STDOUT_FILENO);
+//         close(pipefd[1]);
+//         result = execute_command(argc1, cmd1);
+//         exit(1);
+//     }
+//
+//     pid_t pid2 = fork();
+//     if (pid2 == -1) {
+//         perror("fork");
+//         return ERROR;
+//     }
+//
+//     if (pid2 == 0) { // Second child
+//         close(pipefd[1]);
+//         dup2(pipefd[0], STDIN_FILENO);
+//         close(pipefd[0]);
+//         result = execute_command(argc2, cmd2);
+//         exit(1);
+//     }
+//
+//     // Parent process
+//     close(pipefd[0]);
+//     close(pipefd[1]);
+//     waitpid(pid1, NULL, 0);
+//     waitpid(pid2, NULL, 0);
+//
+//     return result;
+// }
 
 Status execute_command(int argc, char *argv[]) {
-    if (has_pipe == TRUE) {
+    if (argc <= 0) {
+        return ERROR;
+    }
+
+    if (has_pipe(argc, argv) == TRUE) {
         return execute_command_with_pipe(argc, argv);
-    } else if (has_redirect == TRUE) {
+    } else if (has_redirect(argc, argv) == TRUE) {
         return execute_command_with_redirect(argc, argv);
     } else {
         return execute_normal_command(argc, argv);

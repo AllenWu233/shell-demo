@@ -1,6 +1,24 @@
 #include "input.h"
 #include "globals.h"
 
+Bool has_redirect(int argc, char *argv[]) {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], ">") == 0) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+Bool has_pipe(int argc, char *argv[]) {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "|") == 0) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 Status add_to_history() {
     if (history_cnt >= MAX_HISTORY) {
         // Shift the history array to the left
@@ -14,8 +32,6 @@ Status add_to_history() {
 }
 
 Status get_input() {
-    has_pipe = FALSE;
-    has_redirect = FALSE;
     memset(buf, 0, sizeof(buf));
     fgets(buf, sizeof(buf), stdin);
     if (strcmp(buf, "\n") == 0) { // Empty input
@@ -41,10 +57,6 @@ Status parse_input() {
     int i, j;
     for (i = 0, j = 0; i < len; i++) {
         if (buf[i] == '|' || buf[i] == '>') {
-            if (buf[i] == '|')
-                has_pipe = TRUE;
-            if (buf[i] == '>')
-                has_redirect = TRUE;
             // If there was a token being built, end it and start a new token
             // for '|' or '>'
             if (j > 0) {
@@ -80,7 +92,7 @@ Status parse_input() {
 }
 
 Redirect parse_redirect(int argc, char *argv[]) {
-    if (has_redirect == FALSE) {
+    if (has_redirect(argc, argv) == FALSE) {
         return NONE;
     }
 

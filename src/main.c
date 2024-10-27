@@ -9,8 +9,6 @@ char history[MAX_HISTORY][BUFF_SIZE];
 char *argv[MAX_CMD];
 int argc;
 int history_cnt;
-Bool has_pipe;
-Bool has_redirect;
 
 const char *const redirect_str[] = {"NONE", "APPEND", "WRITE", "ERR_RDCT"};
 
@@ -53,8 +51,6 @@ int main() {
     memset(history, 0, sizeof(history));
     argc = 0;
     history_cnt = 0;
-    has_pipe = FALSE;
-    has_redirect = FALSE;
 
     // Save original path
     getcwd(original_path, sizeof(char) * BUFF_SIZE);

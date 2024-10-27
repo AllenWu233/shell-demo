@@ -16,8 +16,5 @@ extern char history[MAX_HISTORY]
                    [BUFF_SIZE]; // Array to store the history of commands
 extern int history_cnt; // Counter to keep track of the number of commands in
                         // the history
-extern Bool has_pipe;   // Flag to indicate if there is a pipe in the command
-extern Bool
-    has_redirect; // Flag to indicate if there is a redirect in the command
 
 #endif

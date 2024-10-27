@@ -7,6 +7,10 @@
 #include <string.h>
 #include <unistd.h>
 
+Bool has_redirect(int argc, char *argv[]);
+
+Bool has_pipe(int argc, char *argv[]);
+
 // Add input to history array
 Status add_to_history();
 
