@@ -1,7 +1,4 @@
-#include "commands.h"
-#include "constants.h"
-#include "input.h"
-#include <stdio.h>
+#include "execute.h"
 
 char buf[BUFF_SIZE];
 char current_path[MAX_PATH_LEN];

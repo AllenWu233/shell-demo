@@ -1,5 +1,5 @@
-#ifndef PARSE_INPUT_H
-#define PARSE_INPUT_H
+#ifndef INPUT_H
+#define INPUT_H
 
 #include "constants.h"
 #include "globals.h"
