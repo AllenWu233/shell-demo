@@ -1,4 +1,5 @@
 #include "execute.h"
+#include "constants.h"
 
 Status execute_external_command(char *argv[]) {
     int pipe_fd[2];
@@ -25,7 +26,7 @@ Status execute_external_command(char *argv[]) {
         execvp(argv[0], argv);
 
         // If execvp returns, it failed
-        char error_msg[256];
+        char error_msg[BUFF_SIZE];
         snprintf(error_msg, sizeof(error_msg), "failed to execute: %s",
                  strerror(errno));
         log_error(argv[0], error_msg);
@@ -34,8 +35,8 @@ Status execute_external_command(char *argv[]) {
         close(pipe_fd[1]); // Close write end
 
         // Read error output from child
-        char buffer[4096];
-        ssize_t bytes_read = read(pipe_fd[0], buffer, sizeof(buffer) - 1);
+        char buf[BUFF_SIZE];
+        ssize_t bytes_read = read(pipe_fd[0], buf, sizeof(buf) - 1);
         close(pipe_fd[0]);
 
         int status;
@@ -45,14 +46,14 @@ Status execute_external_command(char *argv[]) {
             int exit_status = WEXITSTATUS(status);
             if (exit_status != 0) {
                 if (bytes_read > 0) {
-                    buffer[bytes_read] = '\0';
+                    buf[bytes_read] = '\0';
                     // Remove trailing newline if present
-                    if (buffer[bytes_read - 1] == '\n') {
-                        buffer[bytes_read - 1] = '\0';
+                    if (buf[bytes_read - 1] == '\n') {
+                        buf[bytes_read - 1] = '\0';
                     }
-                    log_error(argv[0], buffer);
+                    log_error(argv[0], buf);
                 } else {
-                    char error_msg[256];
+                    char error_msg[BUFF_SIZE];
                     snprintf(error_msg, sizeof(error_msg),
                              "command failed with exit code %d", exit_status);
                     log_error(argv[0], error_msg);
@@ -60,7 +61,7 @@ Status execute_external_command(char *argv[]) {
                 return ERROR;
             }
         } else if (WIFSIGNALED(status)) {
-            char error_msg[256];
+            char error_msg[BUFF_SIZE];
             snprintf(error_msg, sizeof(error_msg),
                      "command terminated by signal %d", WTERMSIG(status));
             log_error(argv[0], error_msg);
@@ -80,7 +81,6 @@ Status execute_normal_command(int argc, char *argv[]) {
     char *cmd = argv[0];
     if (strcmp(cmd, "pwd2") == 0) {
         if (argc > 1) {
-            // fprintf(stderr, "pwd2: too many arguments\n");
             log_error("pwd2", "too many arguments");
             return ERROR;
         }
@@ -392,7 +392,7 @@ Status execute_command_with_pipe(int argc, char *argv[]) {
     // Check exit status of both processes
     if (WIFEXITED(status1)) {
         if (WEXITSTATUS(status1) != 0) {
-            char error_msg[256];
+            char error_msg[BUFF_SIZE];
             snprintf(error_msg, sizeof(error_msg),
                      "first command '%s' failed with exit code %d", cmd1[0],
                      WEXITSTATUS(status1));
@@ -400,7 +400,7 @@ Status execute_command_with_pipe(int argc, char *argv[]) {
             return ERROR;
         }
     } else if (WIFSIGNALED(status1)) {
-        char error_msg[256];
+        char error_msg[BUFF_SIZE];
         snprintf(error_msg, sizeof(error_msg),
                  "first command '%s' terminated by signal %d", cmd1[0],
                  WTERMSIG(status1));
@@ -410,7 +410,7 @@ Status execute_command_with_pipe(int argc, char *argv[]) {
 
     if (WIFEXITED(status2)) {
         if (WEXITSTATUS(status2) != 0) {
-            char error_msg[256];
+            char error_msg[BUFF_SIZE];
             snprintf(error_msg, sizeof(error_msg),
                      "second command '%s' failed with exit code %d", cmd2[0],
                      WEXITSTATUS(status2));
@@ -418,7 +418,7 @@ Status execute_command_with_pipe(int argc, char *argv[]) {
             return ERROR;
         }
     } else if (WIFSIGNALED(status2)) {
-        char error_msg[256];
+        char error_msg[BUFF_SIZE];
         snprintf(error_msg, sizeof(error_msg),
                  "second command '%s' terminated by signal %d", cmd2[0],
                  WTERMSIG(status2));

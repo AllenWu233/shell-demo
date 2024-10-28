@@ -1,4 +1,5 @@
 #include "minifetch.h"
+#include "constants.h"
 
 const char *logo = "\
     ███████╗██╗  ██╗███████╗██╗     ██╗     ██████╗ ███████╗███╗   ███╗ ██████╗   \n\
@@ -27,7 +28,7 @@ void print_info() {
         exit(EXIT_FAILURE);
     }
 
-    char hostname[256];
+    char hostname[BUFF_SIZE];
     if (gethostname(hostname, sizeof(hostname)) < 0) {
         perror("gethostname");
         exit(EXIT_FAILURE);
@@ -44,7 +45,7 @@ void print_info() {
 Status minifetch(void) {
     printf("\n%s%s%s\n", MAGENTA, logo, RESET);
     print_info();
-    printf("\n  %sminifetch Version 1.0   %s\n", GRAY_BG, RESET);
-    printf("  %sCopyright (C) 2024 Allen%s\n\n", GRAY_BG, RESET);
+    printf("\n  %sminifetch Version 1.0        %s\n", GRAY_BG, RESET);
+    printf("  %sCopyright (C) 2024 AllenWu233%s\n\n", GRAY_BG, RESET);
     return OK;
 }

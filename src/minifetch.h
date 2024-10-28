@@ -1,6 +1,13 @@
 #ifndef MINIFETCH_H
 #define MINIFETCH_H
 
+#include "constants.h"
+#include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/utsname.h>
+#include <unistd.h>
+
 #define RESET "\033[0m"
 
 #define BLACK "\033[30m"
@@ -36,13 +43,10 @@
 #define BRIGHT_CYAN_BG "\033[106m"
 #define BRIGHT_WHITE_BG "\033[107m"
 
-#include "constants.h"
-#include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/utsname.h>
-#include <unistd.h>
+void print_color_line();
+void print_info();
 
+// Print system information in a fancy way
 Status minifetch();
 
 #endif
