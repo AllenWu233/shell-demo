@@ -1,6 +1,6 @@
 # shell-demo
 
-> A tiny Linux shell practice
+![A tiny Linux shell practice](images/cover.png)
 
 模仿Linux的Shell，完成具备交互式命令功能的shell
 demo的C程序，命名为shell-demo
@@ -136,6 +136,6 @@ missing test if this can be appended
 接收到不合法命令（包括一切导致错误的命令）时，对标准错误流stderr输出错误信息，
 并记录在主目录下的.shelldemo_err.log中，每条不合法命令需记录：1) 该命令，2) 错误信息
 
-![1](images/question_1.png)
+![question_1](images/question_1.png)
 
-![2](images/question_2.png)
+![question_2](images/question_2.png)
